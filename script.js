@@ -2,25 +2,7 @@ import fs from 'fs'
 import { exec } from 'child_process'
 import moment from 'moment'
 
-
-const months = [
-  "January", 
-  "February", 
-  "March", 
-  "April", 
-  "May", 
-  "June", 
-  "July", 
-  "August", 
-  "September", 
-  "October", 
-  "November", 
-  "December"
-]
-
-
-const pathToDailyJournals = '/Users/zakeriyamohamed/Documents/Obsidian Vault/Daily Journal'
-
+const pathToDailyJournals = '/Users/zakeriyamohamed/Documents/Obsidian Vault/Daily Journals'
 
 function getCurrentMonthName() {
   return moment().format('MMMM')
@@ -28,23 +10,41 @@ function getCurrentMonthName() {
 
 function checkAndCreateMonthDirectory() {
   const currentMonth = getCurrentMonthName()
+  const pathToCurrentMonth = `${pathToDailyJournals}/${currentMonth}`
 
-  const pathToCurrentMonth = `/Users/zakeriyamohamed/Documents/Obsidian Vault/Daily Journal/${currentMonth}`
-
-  if (pathToCurrentMonth) {
-    createDayDirectory()
-    createFilesInDirectory()
+  if (!fs.existsSync(pathToCurrentMonth)) {
+    fs.mkdirSync(pathToCurrentMonth, { recursive: true })
   }
+
+  const pathToCurrentDay = createDayDirectory(pathToCurrentMonth)
+  createFilesInDirectory(pathToCurrentDay)
 }
 
-function createDayDirectory() {
-  // 
+function createDayDirectory(pathToCurrentMonth) {
+  const dayDirectoryName = moment().format('ddd-DD-MMM')
+  const pathToCurrentDay = `${pathToCurrentMonth}/${dayDirectoryName}`
+
+  if (!fs.existsSync(pathToCurrentDay)) {
+    fs.mkdirSync(pathToCurrentDay)
+  }
+
+  return pathToCurrentDay
 }
 
-function createFilesInDirectory() {
-  // 
+function createFilesInDirectory(pathToCurrentDay) {
+  const fileNames = ['Daily Journal', 'Work Log', 'Brain Dump']
+  fileNames.forEach(fileName => {
+    const filePath = `${pathToCurrentDay}/${fileName}.md`
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, `# ${fileName}`)
+    }
+  })
 }
+
 
 function openObsidian() {
   exec('open -a Obsidian')
 }
+
+checkAndCreateMonthDirectory()
+openObsidian()
